@@ -129,8 +129,6 @@
     }
     
     
-    
-    
     // 4.拍摄会话
     AVCaptureSession *session = [[AVCaptureSession alloc] init];
     // 决定了视频输入每一帧图像质量的大小
