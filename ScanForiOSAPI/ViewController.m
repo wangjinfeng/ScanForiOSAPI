@@ -32,7 +32,7 @@
     ScanViewController *view = [[ScanViewController alloc] init];
     [view setScanDelegate:self];
     
-    [self presentViewController:view animated:YES completion:nil];
+    [self.navigationController pushViewController:view animated:YES];
 }
 
 #pragma mark - 扫描结果代理方法

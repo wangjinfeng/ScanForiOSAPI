@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CFCD0DA11A63A3F800E5A048 /* AVCaptureViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CFCD0DA01A63A3F800E5A048 /* AVCaptureViewController.m */; };
 		CFDD25931A5F85A300752202 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CFDD25921A5F85A300752202 /* main.m */; };
 		CFDD25961A5F85A300752202 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CFDD25951A5F85A300752202 /* AppDelegate.m */; };
 		CFDD25991A5F85A300752202 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CFDD25981A5F85A300752202 /* ViewController.m */; };
@@ -31,6 +32,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CFCD0D9F1A63A3F800E5A048 /* AVCaptureViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AVCaptureViewController.h; sourceTree = "<group>"; };
+		CFCD0DA01A63A3F800E5A048 /* AVCaptureViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AVCaptureViewController.m; sourceTree = "<group>"; };
 		CFDD258D1A5F85A300752202 /* ScanForiOSAPI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScanForiOSAPI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CFDD25911A5F85A300752202 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CFDD25921A5F85A300752202 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -104,6 +107,8 @@
 				CFDD25901A5F85A300752202 /* Supporting Files */,
 				CFDD25B81A5FCDDB00752202 /* ScanViewController.h */,
 				CFDD25B91A5FCDDB00752202 /* ScanViewController.m */,
+				CFCD0D9F1A63A3F800E5A048 /* AVCaptureViewController.h */,
+				CFCD0DA01A63A3F800E5A048 /* AVCaptureViewController.m */,
 			);
 			path = ScanForiOSAPI;
 			sourceTree = "<group>";
@@ -237,6 +242,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CFDD25991A5F85A300752202 /* ViewController.m in Sources */,
+				CFCD0DA11A63A3F800E5A048 /* AVCaptureViewController.m in Sources */,
 				CFDD25BA1A5FCDDB00752202 /* ScanViewController.m in Sources */,
 				CFDD25961A5F85A300752202 /* AppDelegate.m in Sources */,
 				CFDD25931A5F85A300752202 /* main.m in Sources */,

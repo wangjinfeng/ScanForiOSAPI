@@ -11,34 +11,84 @@
 #import <QuartzCore/QuartzCore.h>
 
 @interface ScanViewController ()<AVCaptureMetadataOutputObjectsDelegate>
+// 二维码生成的会话
+@property (strong, nonatomic)AVCaptureSession *session;
 
-@property (nonatomic, strong) UIButton *cancelBtn;
+// 二维码生成的图层
+@property (strong, nonatomic) AVCaptureVideoPreviewLayer *previewLayer;
 
 @property (nonatomic, strong) AVAudioPlayer *audioPlayer;
+
+@property (nonatomic, strong) UIView *localView;
+
+@property (nonatomic, strong) UIView *scanView;
+
+@property (nonatomic, strong) AVCaptureDevice *device;
+
 @end
 
 @implementation ScanViewController
 
 - (instancetype)init {
     self = [super init];
-    _cancelBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    [_cancelBtn setTitle:@"取消" forState:UIControlStateNormal];
-    [_cancelBtn setFrame:CGRectMake(0, 20, self.view.bounds.size.width, 40)];
-    [_cancelBtn addTarget:self action:@selector(cancelAction) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:_cancelBtn];
     return self;
 }
 
 #pragma mark 取消按钮
-- (void) cancelAction {
-    [self dismissViewControllerAnimated:YES completion:nil];
+- (void) back {
+    self.audioPlayer = nil;
+    self.previewLayer = nil;
+    self.session = nil;
+    self.localView = nil;
+    [self.navigationController popViewControllerAnimated:YES];
 }
+
+#pragma mark 播放声音
+- (void) loadBeepSound {
+    NSString *beepFilePath = [[NSBundle mainBundle] pathForResource:@"beep-beep" ofType:@"aiff"];
+    NSURL *beepURL = [NSURL fileURLWithPath:beepFilePath];
+    NSError *error;
+    _audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:beepURL error:&error];
+    if (error) {
+        NSLog(@"Could not play beep file.%@ \n%@",beepFilePath,[error localizedDescription]);
+    }
+    else{
+        [_audioPlayer prepareToPlay];
+    }
+}
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view
     
-    [self.view setBackgroundColor:[UIColor whiteColor]];
+    [self.view setBackgroundColor:[UIColor clearColor]];
+    
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"返回" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+
+    
+    UIView *localView= [[UIView alloc] initWithFrame:self.view.bounds];
+    [localView setBackgroundColor:[UIColor clearColor]];
+    self.localView = localView;
+    [self.view addSubview:localView];
+    
+    UIView *bottomBarBgView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height-60, self.view.bounds.size.width, 60)];
+    bottomBarBgView.backgroundColor = [UIColor clearColor];
+    [localView addSubview:bottomBarBgView];
+    
+    UIButton *backBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    [backBtn addTarget:self action:@selector(back) forControlEvents:UIControlEventTouchUpInside];
+    [backBtn setFrame:CGRectMake(10, 5, 60, 44)];
+    [backBtn setTitle:@"Back" forState:UIControlStateNormal];
+    [bottomBarBgView addSubview:backBtn];
+    
+    _scanView = [[UIView alloc] initWithFrame:CGRectMake(0, 100, 180, 180)];
+    [_scanView setCenter:CGPointMake(self.view.bounds.size.width*0.5, self.view.bounds.size.height*0.5)];
+    _scanView.backgroundColor = [UIColor clearColor];
+    [_scanView.layer setBorderColor:[[UIColor redColor] CGColor]];
+    [_scanView.layer setBorderWidth:1];
+    
+    [localView addSubview:_scanView];
+    
     
     // 载入声音
     [self loadBeepSound];
@@ -46,6 +96,7 @@
     // 调用扫描
     [self readQRcode];
 }
+
 
 #pragma mark - AVCapture代理方法
 // 此方法是在识别到QRCode，并且完成转换 ，如果QRCode的内容越大，转换需要的时间就越长
@@ -69,34 +120,20 @@
         NSLog(@"扫描结果：%@",obj);
         [self.scanDelegate scanResult:obj.stringValue];
     }
-    [self cancelAction];
+    [self back];
 }
 
-#pragma mark 播放声音
-- (void) loadBeepSound {
-    NSString *beepFilePath = [[NSBundle mainBundle] pathForResource:@"beep-beep" ofType:@"aiff"];
-    NSURL *beepURL = [NSURL fileURLWithPath:beepFilePath];
-    NSError *error;
-    NSLog(@"%@",beepFilePath);
-    _audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:beepURL error:&error];
-    if (error) {
-        NSLog(@"Could not play beep file.%@",beepFilePath);
-        NSLog(@"%@", [error localizedDescription]);
-    }
-    else{
-        [_audioPlayer prepareToPlay];
-    }
-}
+
 
 #pragma mark - 读取二维码
 - (void) readQRcode {
     
     // 1.摄像头设备
-    AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    _device = [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
     
     // 2.设置输入（因为模拟器没有摄像头，所以先做个判断）
     NSError *error=nil;
-    AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
+    AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:_device error:&error];
     if ( error ) {
         NSLog(@"没有摄像头");
     }
@@ -145,35 +182,109 @@
     // 5.1 设置preview图层的属性
     [preview setVideoGravity:AVLayerVideoGravityResizeAspectFill];
     // 5.2 设置preview图层的大小
-    //[preview setFrame:self.view.bounds];
-    [preview setFrame:self.view.layer.bounds];
-    [preview setBorderColor:[[UIColor redColor] CGColor]];
-    [preview setBorderWidth:1];
+    [preview setFrame:CGRectMake(0, 0, self.localView.bounds.size.width, self.localView.bounds.size.height)];
+    
     
     // 5.3 将图层添加到视图的图层
-    [self.view.layer insertSublayer:preview atIndex:0];
+    //[self.view.layer insertSublayer:preview atIndex:0];
+    [self.localView.layer insertSublayer:preview atIndex:0];
     self.previewLayer = preview;
     
     // 6. 启动会话
     [session startRunning];
     self.session = session;
-
+    
+    //[self focusAtPoint:CGPointMake(self.view.bounds.size.width*0.5, self.view.bounds.size.height*0.5)];
 }
+
+- (void) focusAtPoint:(CGPoint)point {
+    
+    AVCaptureDevice *device = self.device;
+    NSError *error;
+    if ([device isFocusModeSupported:AVCaptureFocusModeAutoFocus] && [device isFocusPointOfInterestSupported]) {
+        
+        if ([device lockForConfiguration:&error]) {
+            [device setFocusPointOfInterest:point];
+            [device setFocusMode:AVCaptureFocusModeAutoFocus];
+            [device unlockForConfiguration];
+        } else {
+            NSLog(@"Error: %@", error);
+        }
+    }
+}
+
+- (CGPoint)convertToPointOfInterestFromViewCoordinates:(CGPoint)viewCoordinates {
+    CGPoint pointOfInterest = CGPointMake(.5f, .5f);
+    CGSize frameSize = [self.view frame].size;
+    
+    AVCaptureVideoPreviewLayer *videoPreviewLayer = [self previewLayer];
+    
+    if ([[self previewLayer] isMirrored]) {
+        viewCoordinates.x = frameSize.width - viewCoordinates.x;
+    }
+    
+    if ( [[videoPreviewLayer videoGravity] isEqualToString:AVLayerVideoGravityResize] ) {
+        pointOfInterest = CGPointMake(viewCoordinates.y / frameSize.height, 1.f - (viewCoordinates.x / frameSize.width));
+    } else {
+        CGRect cleanAperture;
+        for (AVCaptureInputPort *port in [[[[self session] inputs] lastObject] ports]) {
+            if ([port mediaType] == AVMediaTypeVideo) {
+                cleanAperture = CMVideoFormatDescriptionGetCleanAperture([port formatDescription], YES);
+                CGSize apertureSize = cleanAperture.size;
+                CGPoint point = viewCoordinates;
+                
+                CGFloat apertureRatio = apertureSize.height / apertureSize.width;
+                CGFloat viewRatio = frameSize.width / frameSize.height;
+                CGFloat xc = .5f;
+                CGFloat yc = .5f;
+                
+                if ( [[videoPreviewLayer videoGravity] isEqualToString:AVLayerVideoGravityResizeAspect] ) {
+                    if (viewRatio > apertureRatio) {
+                        CGFloat y2 = frameSize.height;
+                        CGFloat x2 = frameSize.height * apertureRatio;
+                        CGFloat x1 = frameSize.width;
+                        CGFloat blackBar = (x1 - x2) / 2;
+                        if (point.x >= blackBar && point.x <= blackBar + x2) {
+                            xc = point.y / y2;
+                            yc = 1.f - ((point.x - blackBar) / x2);
+                        }
+                    } else {
+                        CGFloat y2 = frameSize.width / apertureRatio;
+                        CGFloat y1 = frameSize.height;
+                        CGFloat x2 = frameSize.width;
+                        CGFloat blackBar = (y1 - y2) / 2;
+                        if (point.y >= blackBar && point.y <= blackBar + y2) {
+                            xc = ((point.y - blackBar) / y2);
+                            yc = 1.f - (point.x / x2);
+                        }
+                    }
+                } else if ([[videoPreviewLayer videoGravity] isEqualToString:AVLayerVideoGravityResizeAspectFill]) {
+                    if (viewRatio > apertureRatio) {
+                        CGFloat y2 = apertureSize.width * (frameSize.width / apertureSize.height);
+                        xc = (point.y + ((y2 - frameSize.height) / 2.f)) / y2;
+                        yc = (frameSize.width - point.x) / frameSize.width;
+                    } else {
+                        CGFloat x2 = apertureSize.height * (frameSize.height / apertureSize.width);
+                        yc = 1.f - ((point.x + ((x2 - frameSize.width) / 2)) / x2);
+                        xc = point.y / frameSize.height;
+                    }
+                    
+                }
+                
+                pointOfInterest = CGPointMake(xc, yc);
+                break;
+            }
+        }
+    }
+    
+    return pointOfInterest;
+}
+
 
 #pragma mark - 系统方法
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

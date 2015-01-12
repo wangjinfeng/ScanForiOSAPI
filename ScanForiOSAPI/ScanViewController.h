@@ -7,8 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-@class AVCaptureSession;
-@class AVCaptureVideoPreviewLayer;
 
 @protocol ScanResultDelegate <NSObject>
 
@@ -17,16 +15,10 @@
 
 @end
 
+
 @interface ScanViewController : UIViewController
 
-
 @property (strong, nonatomic) id<ScanResultDelegate> scanDelegate;
-
-// 二维码生成的会话
-@property (strong, nonatomic)AVCaptureSession *session;
-
-// 二维码生成的图层
-@property (strong, nonatomic) AVCaptureVideoPreviewLayer *previewLayer;
 
 
 - (instancetype)init ;
